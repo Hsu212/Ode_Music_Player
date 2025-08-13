@@ -1,26 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 
-// --- DATA ---
-const allSongs = [
-  { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', albumArt: 'https://placehold.co/100x100/c92a2a/FFFFFF?text=A', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-  { id: 2, title: 'Shape of You', artist: 'Ed Sheeran', albumArt: 'https://placehold.co/100x100/a61e4d/FFFFFF?text=B', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
-  { id: 3, title: 'Someone You Loved', artist: 'Lewis Capaldi', albumArt: 'https://placehold.co/100x100/862e9c/FFFFFF?text=C', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
-  { id: 4, title: 'Dance Monkey', artist: 'Tones and I', albumArt: 'https://placehold.co/100x100/6640b5/FFFFFF?text=D', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
-  { id: 5, title: 'Rockstar', artist: 'Post Malone', albumArt: 'https://placehold.co/100x100/4263eb/FFFFFF?text=E', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3' },
-  { id: 6, title: 'Closer', artist: 'The Chainsmokers', albumArt: 'https://placehold.co/100x100/1c7ed6/FFFFFF?text=F', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3' },
-  { id: 7, title: 'Sunroof', artist: 'Nicky Youre, dazy', albumArt: 'https://placehold.co/100x100/1098ad/FFFFFF?text=G', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3' },
-  { id: 8, title: 'As It Was', artist: 'Harry Styles', albumArt: 'https://placehold.co/100x100/0ca678/FFFFFF?text=H', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3' },
-  { id: 9, title: 'Heat Waves', artist: 'Glass Animals', albumArt: 'https://placehold.co/100x100/37b24d/FFFFFF?text=I', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3' },
-  { id: 10, title: 'Espresso', artist: 'Sabrina Carpenter', albumArt: 'https://placehold.co/100x100/74b816/FFFFFF?text=J', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3' },
-  { id: 11, title: 'Good Luck, Babe!', artist: 'Chappell Roan', albumArt: 'https://placehold.co/100x100/f59f00/FFFFFF?text=K', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3' },
-  { id: 12, title: 'Birds of a Feather', artist: 'Billie Eilish', albumArt: 'https://placehold.co/100x100/f76707/FFFFFF?text=L', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3' },
-];
-
-const topCharts = allSongs.slice(0, 5);
-const latestReleases = allSongs.slice(5, 9);
-const recommendations = allSongs.slice(9, 12);
-
-// --- ICONS ---
+// --- ICONS (Keep your existing icon components here) ---
 const PlayIcon = ({size = 24}) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>);
 const PauseIcon = ({size = 24}) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>);
 const SkipBackIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5"/></svg>);
@@ -35,156 +15,233 @@ const UserIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" heigh
 const SettingsIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>);
 const XIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
 
-// --- COMPONENTS ---
+
+// --- HELPER COMPONENTS ---
+
+const LoadingIndicator = () => (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <div className="spinner"></div>
+    </div>
+);
+
+const ErrorDisplay = ({ message }) => (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#e53e3e' }}>
+        <p>Error: {message}</p>
+    </div>
+);
+
+
+// --- UI COMPONENTS (MODALS are the same, keep them here) ---
 
 const MusicSection = ({ title, songs, onSongSelect, currentSong, isPlaying }) => (
   <section className="music-section">
     <h2 className="section-title">{title}</h2>
-    <ul className="song-list">
-      {songs.map((song, index) => (
-        <li
+    <div className="song-carousel">
+      {songs.map((song) => (
+        <div
           key={song.id}
-          className={`song-list-item ${currentSong.id === song.id ? 'active' : ''}`}
+          className={`song-card ${currentSong?.id === song.id ? 'active' : ''}`}
           onClick={() => onSongSelect(song.id)}
         >
-          <div className="song-rank">
-            {currentSong.id === song.id && isPlaying ? <SoundWaveIcon /> : <span>{index + 1}</span>}
+          <div className="card-artwork-container">
+            <img src={song.albumArt} alt={song.title} className="song-album-art" />
+            <div className="card-play-button">
+                {currentSong?.id === song.id && isPlaying ? <PauseIcon size={28} /> : <PlayIcon size={28} />}
+            </div>
+            {currentSong?.id === song.id && isPlaying && <div className="sound-wave-overlay"><SoundWaveIcon /></div>}
           </div>
-          <img src={song.albumArt} alt={song.title} className="song-album-art" />
           <div className="song-details">
             <span className="song-title">{song.title}</span>
             <span className="song-artist">{song.artist}</span>
           </div>
-          <div className="song-play-icon">
-            {currentSong.id === song.id && isPlaying ? <PauseIcon size={20} /> : <PlayIcon size={20} />}
-          </div>
-        </li>
+        </div>
       ))}
-    </ul>
+    </div>
   </section>
 );
 
 const ProfileModal = ({ isOpen, onClose, isAuthenticated, onLogin, onLogout }) => {
-    const [isLoginView, setIsLoginView] = useState(true);
-    if (!isOpen) return null;
+    const [isLoginView, setIsLoginView] = useState(true);
+    if (!isOpen) return null;
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onLogin(); // Simulate login
-        onClose();
-    }
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onLogin(); // Simulate login
+        onClose();
+    }
 
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <button className="modal-close-button" onClick={onClose}><XIcon /></button>
-                <h2 className="modal-title">{isAuthenticated ? 'Profile' : (isLoginView ? 'Login' : 'Create Account')}</h2>
-                {isAuthenticated ? (
-                    <div className="profile-view">
-                        <p>Welcome, User!</p>
-                        <button className="form-button">Change Password</button>
-                        <button className="form-button secondary" onClick={onLogout}>Logout</button>
-                    </div>
-                ) : (
-                    <form onSubmit={handleSubmit}>
-                        <div className="form-group">
-                            <label htmlFor="email">Email</label>
-                            <input type="email" id="email" required className="form-input" />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="password">Password</label>
-                            <input type="password" id="password" required className="form-input" />
-                        </div>
-                        {!isLoginView && (
-                            <div className="form-group">
-                                <label htmlFor="confirm-password">Confirm Password</label>
-                                <input type="password" id="confirm-password" required className="form-input" />
-                            </div>
-                        )}
-                        <button type="submit" className="form-button">{isLoginView ? 'Login' : 'Create Account'}</button>
-                        <p className="form-switch">
-                            {isLoginView ? "Don't have an account?" : "Already have an account?"}
-                            <button type="button" onClick={() => setIsLoginView(!isLoginView)}>
-                                {isLoginView ? 'Sign Up' : 'Login'}
-                            </button>
-                        </p>
-                    </form>
-                )}
-            </div>
-        </div>
-    );
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <button className="modal-close-button" onClick={onClose}><XIcon /></button>
+                <h2 className="modal-title">{isAuthenticated ? 'Profile' : (isLoginView ? 'Login' : 'Create Account')}</h2>
+                {isAuthenticated ? (
+                    <div className="profile-view">
+                        <p>Welcome, User!</p>
+                        <button className="form-button">Change Password</button>
+                        <button className="form-button secondary" onClick={onLogout}>Logout</button>
+                    </div>
+                ) : (
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label htmlFor="email">Email</label>
+                            <input type="email" id="email" required className="form-input" />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="password">Password</label>
+                            <input type="password" id="password" required className="form-input" />
+                        </div>
+                        {!isLoginView && (
+                            <div className="form-group">
+                                <label htmlFor="confirm-password">Confirm Password</label>
+                                <input type="password" id="confirm-password" required className="form-input" />
+                            </div>
+                        )}
+                        <button type="submit" className="form-button">{isLoginView ? 'Login' : 'Create Account'}</button>
+                        <p className="form-switch">
+                            {isLoginView ? "Don't have an account?" : "Already have an account?"}
+                            <button type="button" onClick={() => setIsLoginView(!isLoginView)}>
+                                {isLoginView ? 'Sign Up' : 'Login'}
+                            </button>
+                        </p>
+                    </form>
+                )}
+            </div>
+        </div>
+    );
 };
 
 const SettingsModal = ({ isOpen, onClose }) => {
-    if (!isOpen) return null;
+    if (!isOpen) return null;
 
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <button className="modal-close-button" onClick={onClose}><XIcon /></button>
-                <h2 className="modal-title">Settings</h2>
-                <div className="setting-item">
-                    <label htmlFor="language">Language</label>
-                    <select id="language" className="form-input">
-                        <option>English</option>
-                        <option>Español</option>
-                        <option>Français</option>
-                    </select>
-                </div>
-                <div className="setting-item">
-                    <label>Download Quality</label>
-                    <div className="radio-group">
-                        <label><input type="radio" name="quality" value="wifi" defaultChecked /> Wi-Fi Only</label>
-                        <label><input type="radio" name="quality" value="always" /> Always</label>
-                    </div>
-                </div>
-                <div className="setting-item">
-                    <label>Save Data</label>
-                    <label className="toggle-switch">
-                        <input type="checkbox" />
-                        <span className="slider"></span>
-                    </label>
-                </div>
-                 <button className="form-button" onClick={onClose}>Save Changes</button>
-            </div>
-        </div>
-    );
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+  _         <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <button className="modal-close-button" onClick={onClose}><XIcon /></button>
+                <h2 className="modal-title">Settings</h2>
+                <div className="setting-item">
+                    <label htmlFor="language">Language</label>
+                    <select id="language" className="form-input">
+                        <option>English</option>
+                        <option>Español</option>
+                        <option>Français</option>
+                    </select>
+                </div>
+                <div className="setting-item">
+                    <label>Download Quality</label>
+                    <div className="radio-group">
+                        <label><input type="radio" name="quality" value="wifi" defaultChecked /> Wi-Fi Only</label>
+                        <label><input type="radio" name="quality" value="always" /> Always</label>
+                    </div>
+                </div>
+                <div className="setting-item">
+                    <label>Save Data</label>
+                    <label className="toggle-switch">
+                        <input type="checkbox" />
+                        <span className="slider"></span>
+                    </label>
+                </div>
+                 <button className="form-button" onClick={onClose}>Save Changes</button>
+            </div>
+        </div>
+    );
 };
 
 
+// --- MAIN APP COMPONENT ---
+
 function App() {
   // State management
-  const [currentSongIndex, setCurrentSongIndex] = useState(0);
+  const [songs, setSongs] = useState([]);
+  const [currentSongIndex, setCurrentSongIndex] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(1);
   const [duration, setDuration] = useState(0);
   const [theme, setTheme] = useState('dark');
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  // New state for modals and authentication
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
+  
+  // New state for API data
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const audioRef = useRef(null);
-  const currentSong = allSongs[currentSongIndex];
+  const currentSong = currentSongIndex !== null ? songs[currentSongIndex] : null;
+
+  // --- API & DATA ---
+  
+  // IMPORTANT: Get your free client_id from https://developer.jamendo.com/v3.0/docs
+  const JAMENDO_CLIENT_ID = '2838a1f3';
+
+  // Fetch data from Jamendo API on component mount
+  useEffect(() => {
+    const fetchSongs = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=30&order=popularity_week&imagesize=600`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        const formattedSongs = data.results.map(track => ({
+          id: track.id,
+          title: track.name,
+          artist: track.artist_name,
+          albumArt: track.image,
+          url: track.audio
+        }));
+        setSongs(formattedSongs);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSongs();
+  }, []);
+
+  // Memoize chart data to avoid recalculation on every render
+  const topCharts = useMemo(() => songs.slice(0, 10), [songs]);
+  const latestReleases = useMemo(() => songs.slice(10, 20), [songs]);
+  const recommendations = useMemo(() => songs.slice(20, 30), [songs]);
+  const searchResults = useMemo(() => {
+      if (!searchTerm) return [];
+      return songs.filter(song =>
+          song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          song.artist.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+  }, [searchTerm, songs]);
+
 
   // --- Handlers ---
   const togglePlayPause = () => {
-    if (audioRef.current.src) setIsPlaying(prev => !prev);
+    if (currentSong) setIsPlaying(prev => !prev);
   };
 
   const playSongById = (songId) => {
-    const songIndex = allSongs.findIndex(song => song.id === songId);
+    const songIndex = songs.findIndex(song => song.id === songId);
     if (songIndex !== -1) {
-      setCurrentSongIndex(songIndex);
-      setIsPlaying(true);
+      if (currentSongIndex === songIndex) {
+          togglePlayPause(); // If it's the same song, just toggle play/pause
+      } else {
+          setCurrentSongIndex(songIndex);
+          setIsPlaying(true);
+      }
     }
   };
 
-  const playNext = () => setCurrentSongIndex(prev => (prev + 1) % allSongs.length);
-  const playPrevious = () => setCurrentSongIndex(prev => (prev - 1 + allSongs.length) % allSongs.length);
+  const playNext = () => {
+      if (songs.length === 0) return;
+      setCurrentSongIndex(prev => (prev + 1) % songs.length);
+  };
+  const playPrevious = () => {
+      if (songs.length === 0) return;
+      setCurrentSongIndex(prev => (prev - 1 + songs.length) % songs.length);
+  };
   const handleTimeUpdate = () => {
     const audio = audioRef.current;
     if (audio && !isNaN(audio.duration)) setProgress((audio.currentTime / audio.duration) * 100);
@@ -204,33 +261,25 @@ function App() {
   // --- Effects ---
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio.src && currentSong.url) audio.src = currentSong.url;
-    if (isPlaying) audio.play().catch(console.error);
-    else audio.pause();
+    if (!currentSong) return;
+
+    if (audio.src !== currentSong.url) {
+      audio.src = currentSong.url;
+      audio.load();
+    }
+    
+    if (isPlaying) {
+        audio.play().catch(console.error);
+    } else {
+        audio.pause();
+    }
   }, [isPlaying, currentSong]);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    audio.src = currentSong.url;
-    audio.load();
-    if (isPlaying) audio.play().catch(console.error);
-  }, [currentSongIndex]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  useEffect(() => {
-    if (searchTerm === '') {
-      setSearchResults([]);
-    } else {
-      const results = allSongs.filter(song =>
-        song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        song.artist.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setSearchResults(results);
-    }
-  }, [searchTerm]);
 
   const formatTime = (time) => {
     if (isNaN(time) || time === 0) return "0:00";
@@ -239,9 +288,24 @@ function App() {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
+  const renderMainContent = () => {
+      if (isLoading) return <LoadingIndicator />;
+      if (error) return <ErrorDisplay message={error} />;
+      if (searchTerm) return <MusicSection title="Search Results" songs={searchResults} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} />;
+      
+      return (
+        <>
+          <MusicSection title="Top Charts" songs={topCharts} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} />
+          <MusicSection title="Latest Releases" songs={latestReleases} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} />
+          <MusicSection title="Recommended For You" songs={recommendations} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} />
+        </>
+      );
+  }
+
   return (
     <>
       <style>{`
+        /* --- Base & Theme Styles --- */
         :root {
           --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
           --transition-speed: 0.3s;
@@ -259,39 +323,46 @@ function App() {
           --hover-bg: #e8e8e8; --shadow-color: rgba(0, 0, 0, 0.1);
         }
         body { margin: 0; font-family: var(--font-family); background-color: var(--bg-primary); color: var(--text-primary); }
+        
+        /* --- Layout --- */
         .app-container { display: grid; grid-template-columns: 240px 1fr; grid-template-rows: 1fr auto; height: 100vh; overflow: hidden; }
         .sidebar { grid-row: 1 / 2; background-color: var(--bg-secondary); padding: 1.5rem; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .main-content { grid-row: 1 / 2; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 2rem; }
+        .footer-player { grid-column: 1 / 3; grid-row: 2 / 3; background-color: var(--bg-secondary); border-top: 1px solid var(--border-color); display: grid; grid-template-columns: 1fr 2fr 1fr; align-items: center; padding: 0 1.5rem; height: 90px; }
+        
+        /* --- Sidebar --- */
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         .sidebar-logo { font-weight: 700; font-size: 1.25rem; }
-        .sidebar-actions { display: flex; gap: 0.5rem; }
+        .sidebar-actions { display: flex; gap: 0.5rem; margin-top: auto; }
         .sidebar-button { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.5rem; border-radius: 50%; }
         .sidebar-button:hover { background-color: var(--hover-bg); color: var(--text-primary); }
-        .sidebar-nav { margin-top: auto; }
         .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
         .sidebar-nav li a { display: block; padding: 0.75rem 0; color: var(--text-secondary); text-decoration: none; font-weight: 500; }
         .sidebar-nav li a:hover { color: var(--text-primary); }
-        .main-content { grid-row: 1 / 2; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 2rem; }
-        .search-bar-container { position: relative; margin-bottom: 1rem; }
+
+        /* --- Main Content & Search --- */
+        .search-bar-container { position: relative; }
         .search-icon { position: absolute; top: 50%; left: 1rem; transform: translateY(-50%); color: var(--text-secondary); }
         .search-input { width: 100%; padding: 0.75rem 1rem 0.75rem 3rem; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem; }
         .search-input:focus { outline: none; border-color: var(--accent-color); }
-        .music-section { }
-        .section-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem; }
-        .song-list { list-style: none; padding: 0; margin: 0; }
-        .song-list-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease-in-out; }
-        .song-list-item:hover { background-color: var(--hover-bg); }
-        .song-list-item.active { background-color: var(--accent-color-light); }
-        .song-list-item.active .song-title { color: var(--accent-color); font-weight: 600; }
-        .song-rank { font-size: 1rem; font-weight: 500; color: var(--text-secondary); width: 24px; text-align: center; flex-shrink: 0; }
-        .song-list-item.active .song-rank { color: var(--accent-color); }
-        .song-album-art { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; }
-        .song-details { flex-grow: 1; display: flex; flex-direction: column; }
-        .song-title { font-weight: 500; color: var(--text-primary); }
+        .section-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; }
+        
+        /* --- Music Section & Carousel (NEW) --- */
+        .song-carousel { display: flex; overflow-x: auto; gap: 1.5rem; padding: 0.5rem 0 1.5rem 0; scrollbar-width: none; }
+        .song-carousel::-webkit-scrollbar { display: none; }
+        .song-card { width: 180px; flex-shrink: 0; cursor: pointer; }
+        .card-artwork-container { position: relative; margin-bottom: 0.75rem; }
+        .song-album-art { width: 100%; height: 180px; border-radius: 8px; object-fit: cover; display: block; }
+        .card-play-button { position: absolute; bottom: 0.75rem; right: 0.75rem; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: white; opacity: 0; transform: translateY(10px); transition: all 0.3s ease; }
+        .song-card:hover .card-play-button { opacity: 1; transform: translateY(0); }
+        .song-card.active .card-play-button { opacity: 1; transform: translateY(0); color: var(--accent-color); }
+        .song-details { display: flex; flex-direction: column; }
+        .song-title { font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .song-card.active .song-title { color: var(--accent-color); }
         .song-artist { font-size: 0.875rem; color: var(--text-secondary); }
-        .song-play-icon { opacity: 0; transition: opacity 0.2s ease-in-out; color: var(--text-primary); }
-        .song-list-item:hover .song-play-icon, .song-list-item.active .song-play-icon { opacity: 1; }
-        .song-list-item.active .song-play-icon { color: var(--accent-color); }
-        .footer-player { grid-column: 1 / 3; grid-row: 2 / 3; background-color: var(--bg-secondary); border-top: 1px solid var(--border-color); display: grid; grid-template-columns: 1fr 2fr 1fr; align-items: center; padding: 0 1.5rem; height: 90px; }
+        .sound-wave-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--accent-color-light); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent-color); }
+
+        /* --- Footer Player --- */
         .current-track-info { display: flex; align-items: center; gap: 1rem; }
         .footer-album-art { width: 56px; height: 56px; border-radius: 6px; }
         .footer-song-details { display: flex; flex-direction: column; }
@@ -313,30 +384,36 @@ function App() {
         .footer-right-controls { display: flex; justify-content: flex-end; }
         .volume-container { display: flex; align-items: center; gap: 0.5rem; width: 150px; }
         .volume-bar::-webkit-slider-runnable-track { background: linear-gradient(to right, var(--text-secondary) 0%, var(--text-secondary) ${volume * 100}%, var(--bg-tertiary) ${volume * 100}%, var(--bg-tertiary) 100%); }
-        .volume-bar::-webkit-slider-thumb { height: 12px; width: 12px; margin-top: -4px; }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: var(--bg-modal); padding: 2rem; border-radius: 12px; width: 90%; max-width: 400px; position: relative; box-shadow: 0 10px 30px var(--shadow-color); }
-        .modal-close-button { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; }
-        .modal-title { margin-top: 0; margin-bottom: 1.5rem; font-size: 1.5rem; }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; color: var(--text-secondary); }
-        .form-input { width: 100%; padding: 0.75rem; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem; box-sizing: border-box; }
-        .form-button { width: 100%; padding: 0.875rem; border: none; border-radius: 8px; background-color: var(--accent-color); color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
-        .form-button:hover { opacity: 0.85; }
-        .form-button.secondary { background-color: var(--bg-tertiary); color: var(--text-primary); margin-top: 0.5rem; }
-        .form-switch { margin-top: 1rem; text-align: center; color: var(--text-secondary); }
-        .form-switch button { background: none; border: none; color: var(--accent-color); font-weight: 600; cursor: pointer; }
-        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border-color); }
-        .setting-item:last-of-type { border-bottom: none; }
-        .setting-item label { font-weight: 500; }
-        .radio-group { display: flex; gap: 1rem; }
-        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--bg-tertiary); transition: .4s; border-radius: 28px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--accent-color); }
-        input:checked + .slider:before { transform: translateX(22px); }
-        @media (max-width: 768px) { .app-container { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; } .sidebar { grid-row: 1; flex-direction: row; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; border-right: none; border-bottom: 1px solid var(--border-color); } .sidebar-header { margin-bottom: 0; } .sidebar-nav { display: none; } .main-content { grid-row: 2; padding: 1rem; } .footer-player { grid-row: 3; grid-template-columns: auto 1fr auto; padding: 0 1rem; height: 70px; } .footer-controls { grid-column: 2; } .footer-right-controls { grid-column: 3; } .current-track-info { grid-column: 1; } .footer-song-details { display: none; } .volume-container { display: none; } }
+        
+        /* Spinner for Loading State */
+        .spinner { width: 48px; height: 48px; border: 5px solid var(--border-color); border-bottom-color: var(--accent-color); border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- Modals (Keep existing modal styles here) --- */
+         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: var(--bg-modal); padding: 2rem; border-radius: 12px; width: 90%; max-width: 400px; position: relative; box-shadow: 0 10px 30px var(--shadow-color); }
+        .modal-close-button { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; }
+        .modal-title { margin-top: 0; margin-bottom: 1.5rem; font-size: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; color: var(--text-secondary); }
+        .form-input { width: 100%; padding: 0.75rem; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem; box-sizing: border-box; }
+        .form-button { width: 100%; padding: 0.875rem; border: none; border-radius: 8px; background-color: var(--accent-color); color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        .form-button:hover { opacity: 0.85; }
+        .form-button.secondary { background-color: var(--bg-tertiary); color: var(--text-primary); margin-top: 0.5rem; }
+        .form-switch { margin-top: 1rem; text-align: center; color: var(--text-secondary); }
+        .form-switch button { background: none; border: none; color: var(--accent-color); font-weight: 600; cursor: pointer; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border-color); }
+        .setting-item:last-of-type { border-bottom: none; }
+        .radio-group { display: flex; gap: 1rem; }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--bg-tertiary); transition: .4s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* Responsive */
+         @media (max-width: 768px) { .app-container { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; } .sidebar { grid-row: 1; flex-direction: row; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; border-right: none; border-bottom: 1px solid var(--border-color); } .sidebar-header { margin-bottom: 0; } .sidebar-nav { display: none; } .main-content { grid-row: 2; padding: 1rem; } .footer-player { grid-row: 3; grid-template-columns: auto 1fr auto; padding: 0 1rem; height: 70px; } .footer-controls { grid-column: 2; } .footer-right-controls { grid-column: 3; } .current-track-info { grid-column: 1; } .footer-song-details { display: none; } .volume-container { display: none; } }
       `}</style>
 
       <div className="app-container">
@@ -351,7 +428,7 @@ function App() {
               <li><a href="#/">Radio</a></li>
             </ul>
           </nav>
-           <div className="sidebar-actions">
+            <div className="sidebar-actions">
               <button className="sidebar-button" onClick={() => setSettingsModalOpen(true)}><SettingsIcon /></button>
               <button className="sidebar-button" onClick={() => setProfileModalOpen(true)}><UserIcon /></button>
               <button className="sidebar-button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
@@ -365,44 +442,41 @@ function App() {
             <div className="search-icon"><SearchIcon /></div>
             <input type="text" placeholder="Search for songs or artists..." className="search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
-
-          {searchTerm ? (
-            <MusicSection title="Search Results" songs={searchResults} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} />
-          ) : (
-            <>
-              <MusicSection title="Top Charts" songs={topCharts} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} />
-              <MusicSection title="Latest Releases" songs={latestReleases} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} />
-              <MusicSection title="Recommended For You" songs={recommendations} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} />
-            </>
-          )}
+          {renderMainContent()}
         </main>
 
         <footer className="footer-player">
-          <div className="current-track-info">
-            <img src={currentSong.albumArt} alt={currentSong.title} className="footer-album-art" />
-            <div className="footer-song-details">
-              <span className="footer-song-title">{currentSong.title}</span>
-              <span className="footer-song-artist">{currentSong.artist}</span>
+          {currentSong ? (
+            <>
+            <div className="current-track-info">
+              <img src={currentSong.albumArt} alt={currentSong.title} className="footer-album-art" />
+              <div className="footer-song-details">
+                <span className="footer-song-title">{currentSong.title}</span>
+                <span className="footer-song-artist">{currentSong.artist}</span>
+              </div>
             </div>
-          </div>
-          <div className="footer-controls">
-            <div className="controls-container">
-              <button onClick={playPrevious} className="control-button"><SkipBackIcon /></button>
-              <button onClick={togglePlayPause} className="play-pause-button">{isPlaying ? <PauseIcon /> : <PlayIcon />}</button>
-              <button onClick={playNext} className="control-button"><SkipForwardIcon /></button>
+            <div className="footer-controls">
+              <div className="controls-container">
+                <button onClick={playPrevious} className="control-button"><SkipBackIcon /></button>
+                <button onClick={togglePlayPause} className="play-pause-button">{isPlaying ? <PauseIcon /> : <PlayIcon />}</button>
+                <button onClick={playNext} className="control-button"><SkipForwardIcon /></button>
+              </div>
+              <div className="progress-container">
+                <span className="progress-time">{formatTime(audioRef.current?.currentTime)}</span>
+                <input type="range" min="0" max="100" value={progress} onChange={handleProgressBarChange} className="progress-bar" />
+                <span className="progress-time">{formatTime(duration)}</span>
+              </div>
             </div>
-            <div className="progress-container">
-              <span className="progress-time">{formatTime(audioRef.current?.currentTime)}</span>
-              <input type="range" min="0" max="100" value={progress} onChange={handleProgressBarChange} className="progress-bar" />
-              <span className="progress-time">{formatTime(duration)}</span>
+            <div className="footer-right-controls">
+              <div className="volume-container">
+                <button className="control-button" onClick={() => setVolume(volume > 0 ? 0 : 1)}>{volume > 0 ? <SpeakerIcon /> : <MutedSpeakerIcon />}</button>
+                <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} className="volume-bar" />
+              </div>
             </div>
-          </div>
-          <div className="footer-right-controls">
-            <div className="volume-container">
-              <button className="control-button" onClick={() => setVolume(volume > 0 ? 0 : 1)}>{volume > 0 ? <SpeakerIcon /> : <MutedSpeakerIcon />}</button>
-              <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} className="volume-bar" />
-            </div>
-          </div>
+            </>
+          ) : (
+            <div style={{gridColumn: '1 / 4', textAlign: 'center', color: 'var(--text-secondary)'}}>Select a song to play</div>
+          )}
         </footer>
 
         <audio ref={audioRef} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={playNext} preload="metadata"></audio>
