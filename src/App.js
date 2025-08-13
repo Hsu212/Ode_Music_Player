@@ -419,7 +419,7 @@ function App() {
       <div className="app-container">
         <aside className="sidebar">
           <div className="sidebar-header">
-            <div className="sidebar-logo"> Music</div>
+            <div className="sidebar-logo">MOTO Music</div>
           </div>
           <nav className="sidebar-nav">
             <ul>
