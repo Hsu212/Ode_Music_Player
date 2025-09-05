@@ -22,6 +22,7 @@ const MoreIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" heigh
 const HeartIcon = ({ isFavorite }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>);
 const CloseIcon = ({size = 32}) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
 
+
 // --- HELPER COMPONENTS ---
 const LoadingIndicator = () => (<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><div className="spinner"></div></div>);
 const ErrorDisplay = ({ message }) => (<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#e53e3e' }}><p>{message}</p></div>);
@@ -90,6 +91,56 @@ const VerticalSongList = ({ title, songs, onSongSelect, currentSong, isPlaying }
         </section>
     );
 };
+const FavoriteSongsList = ({ songs, favoriteSongIds, onSongSelect, currentSong, isPlaying }) => {
+    const favoriteSongs = songs.filter((song) => favoriteSongIds.includes(song.id));
+  
+    return (
+      <section className="music-section">
+        <h2 className="section-title">Favorite Songs</h2>
+        {favoriteSongs.length > 0 ? (
+          <div className="vertical-song-list">
+            {favoriteSongs.map((song, index) => (
+              <div
+                key={song.id}
+                className={`song-list-item ${currentSong?.id === song.id ? 'active' : ''}`}
+                onClick={() => onSongSelect(song.id)}
+              >
+                <div className="song-list-number">
+                  {currentSong?.id === song.id && isPlaying ? (
+                    <SoundWaveIcon />
+                  ) : (
+                    <span>{index + 1}</span>
+                  )}
+                </div>
+                <img
+                  src={song.albumArt}
+                  alt={song.title}
+                  className="song-list-artwork"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://placehold.co/40x40/000000/FFFFFF?text=Err';
+                  }}
+                />
+                <div className="song-list-details">
+                  <span className="song-title">{song.title}</span>
+                  <span className="song-artist">{song.artist}</span>
+                </div>
+                <button className="song-list-play-button">
+                  {currentSong?.id === song.id && isPlaying ? (
+                    <PauseIcon size={20} />
+                  ) : (
+                    <PlayIcon size={20} />
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="no-favorites">No favorite songs yet.</p>
+        )}
+      </section>
+    );
+  };
 
 // --- PROFILE PAGE COMPONENT ---
 const ProfilePage = ({ session, onBack }) => {
@@ -98,130 +149,180 @@ const ProfilePage = ({ session, onBack }) => {
     const [username, setUsername] = useState(null);
     const [avatarUrl, setAvatarUrl] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [bio, setBio] = useState(''); // New bio field
     const user = session.user;
-
+  
     useEffect(() => {
-        const getProfile = async () => {
-            try {
-                setLoading(true);
-                const { data, error, status } = await supabase
-                    .from('profiles')
-                    .select(`username, avatar_url`)
-                    .eq('id', user.id)
-                    .single();
-
-                if (error && status !== 406) {
-                    throw error;
-                }
-
-                if (data) {
-                    setUsername(data.username);
-                    setAvatarUrl(data.avatar_url);
-                }
-            } catch (error) {
-                console.error('Error loading user data:', error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        getProfile();
+      const getProfile = async () => {
+        try {
+          setLoading(true);
+          const { data, error, status } = await supabase
+            .from('profiles')
+            .select(`username, avatar_url, bio`) // Include bio in the query
+            .eq('id', user.id)
+            .single();
+  
+          if (error && status !== 406) {
+            throw error;
+          }
+  
+          if (data) {
+            setUsername(data.username);
+            setAvatarUrl(data.avatar_url);
+            setBio(data.bio || ''); // Set bio, default to empty if null
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      getProfile();
     }, [session]);
-
+  
     const handleLogout = async () => {
-        setLoading(true);
-        await supabase.auth.signOut();
+      setLoading(true);
+      await supabase.auth.signOut();
     };
-
+  
     const handleUsernameSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            setLoading(true);
-            const { error } = await supabase.from('profiles').upsert({ id: user.id, username, updated_at: new Date() });
-            if (error) throw error;
-            setIsEditing(false);
-        } catch (error) {
-            alert(error.message);
-        } finally {
-            setLoading(false);
-        }
+      e.preventDefault();
+      try {
+        setLoading(true);
+        const { error } = await supabase
+          .from('profiles')
+          .upsert({ id: user.id, username, bio, updated_at: new Date() }); // Update bio along with username
+        if (error) throw error;
+        setIsEditing(false);
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        setLoading(false);
+      }
     };
-    
+  
     const uploadAvatar = async (event) => {
-        try {
-            setUploading(true);
-            if (!event.target.files || event.target.files.length === 0) {
-                throw new Error('You must select an image to upload.');
-            }
-
-            const file = event.target.files[0];
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${user.id}.${fileExt}`;
-            const filePath = `${fileName}`;
-
-            let { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
-            if (uploadError) throw uploadError;
-            
-            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
-
-            const { error: updateError } = await supabase.from('profiles').upsert({ id: user.id, avatar_url: publicUrl });
-            if (updateError) throw updateError;
-            
-            setAvatarUrl(publicUrl); 
-            
-        } catch (error) {
-            alert(error.message);
-        } finally {
-            setUploading(false);
+      try {
+        setUploading(true);
+        if (!event.target.files || event.target.files.length === 0) {
+          throw new Error('You must select an image to upload.');
         }
+  
+        const file = event.target.files[0];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}.${fileExt}`;
+        const filePath = `${fileName}`;
+  
+        let { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+        if (uploadError) throw uploadError;
+  
+        const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+  
+        const { error: updateError } = await supabase.from('profiles').upsert({ id: user.id, avatar_url: publicUrl });
+        if (updateError) throw updateError;
+  
+        setAvatarUrl(publicUrl);
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        setUploading(false);
+      }
     };
-
+  
     if (loading) {
-        return <LoadingIndicator />;
+      return <LoadingIndicator />;
     }
-
+  
     return (
-        <div className="profile-page">
-            <button className="back-button" onClick={onBack}><ArrowLeftIcon /> Back to Music</button>
-            <header className="profile-header">
-                <div className="profile-avatar-wrapper">
-                    <img 
-                        src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(username || user.email)}&background=0D8ABC&color=fff&size=128`} 
-                        alt="Profile avatar" 
-                        className="profile-avatar"
-                    />
-                     <label htmlFor="avatar-upload" className="avatar-upload-label">{uploading ? '...' : 'Change'}</label>
-                    <input type="file" id="avatar-upload" accept="image/*" onChange={uploadAvatar} disabled={uploading} style={{ display: 'none' }} />
-                </div>
-                <div className="profile-info">
-                    {isEditing ? (
-                        <form onSubmit={handleUsernameSubmit} className="username-edit-form">
-                            <input type="text" value={username || ''} onChange={(e) => setUsername(e.target.value)} className="form-input" placeholder="Your Nickname" />
-                            <button type="submit" className="form-button" disabled={loading}>Save</button>
-                        </form>
-                    ) : (
-                        <>
-                            <h1>{username || 'No Nickname'}<button onClick={() => setIsEditing(true)} className="edit-icon-button"><PencilIcon /></button></h1>
-                            <p>{user.email}</p>
-                        </>
-                    )}
-                </div>
-            </header>
-            <section className="library-section">
-                <h2>My Library</h2>
-                <div className="library-grid">
-                    <div className="library-item"><div className="library-item-art liked-songs-art"></div><p>Liked Songs</p></div>
-                    <div className="library-item"><div className="library-item-art"></div><p>My Playlist #1</p></div>
-                    <div className="library-item"><div className="library-item-art"></div><p>Acoustic Hits</p></div>
-                    <div className="library-item"><div className="library-item-art"></div><p>Workout Mix</p></div>
-                </div>
-            </section>
-            <div className="profile-actions">
-                <button className="form-button secondary" onClick={handleLogout} disabled={loading}>{loading ? 'Logging out...' : 'Logout'}</button>
-            </div>
+      <div className="profile-page">
+        <button className="back-button" onClick={onBack}>
+          <ArrowLeftIcon /> Back to Music
+        </button>
+        <header className="profile-header">
+          <div className="profile-avatar-wrapper">
+            <img
+              src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(username || user.email)}&background=0D8ABC&color=fff&size=128`}
+              alt="Profile avatar"
+              className="profile-avatar"
+            />
+            <label htmlFor="avatar-upload" className="avatar-upload-label">
+              {uploading ? '...' : 'Change'}
+            </label>
+            <input
+              type="file"
+              id="avatar-upload"
+              accept="image/*"
+              onChange={uploadAvatar}
+              disabled={uploading}
+              style={{ display: 'none' }}
+            />
+          </div>
+          <div className="profile-info">
+            <h1>
+              {isEditing ? (
+                <form onSubmit={handleUsernameSubmit} className="username-edit-form">
+                  <input
+                    type="text"
+                    value={username || ''}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="form-input"
+                    placeholder="Your Nickname"
+                  />
+                  <button type="submit" className="form-button" disabled={loading}>
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    className="form-button secondary"
+                    onClick={() => setIsEditing(false)}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </button>
+                </form>
+              ) : (
+                <>
+                  {username || user.email}
+                  <button
+                    className="edit-icon-button"
+                    onClick={() => setIsEditing(true)}
+                    disabled={loading}
+                  >
+                    <PencilIcon />
+                  </button>
+                </>
+              )}
+            </h1>
+            <p className="profile-email">Email: {user.email}</p>
+            <p className="profile-join-date">
+              Joined: {new Date(user.created_at).toLocaleDateString()}
+            </p>
+            {isEditing && (
+              <div className="bio-edit">
+                <label htmlFor="bio-input">Bio:</label>
+                <textarea
+                  id="bio-input"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  className="form-input bio-input"
+                  placeholder="Tell us about yourself..."
+                  maxLength={200}
+                />
+                <p className="bio-char-count">{bio.length}/200</p>
+              </div>
+            )}
+            {!isEditing && bio && <p className="profile-bio">{bio}</p>}
+          </div>
+        </header>
+        <div className="profile-actions">
+          <button className="form-button" onClick={handleLogout} disabled={loading}>
+            Logout
+          </button>
         </div>
+      </div>
     );
-};
+  };
 
 // --- MODAL COMPONENTS ---
 const AuthModal = ({ isOpen, onClose }) => {
@@ -371,16 +472,169 @@ const GlobalStyles = () => (
         display: grid;
         grid-template-columns: 1fr 2fr 1fr;
       }
+      /* --- Library and Favorite Songs Styles --- */
+.no-favorites {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 1rem;
+  font-style: italic;
+}
+
+.sidebar-nav li a.active {
+  color: var(--accent-color);
+  font-weight: 600;
+}
       /* --- Base & Theme Styles --- */
 :root { --font-family: 'Inter', sans-serif; --transition-speed: 0.3s; }
 [data-theme='dark'] { --bg-primary: #121212; --bg-secondary: #1e1e1e; --bg-tertiary: #2a2a2a; --bg-modal: #282828; --text-primary: #ffffff; --text-secondary: #b3b3b3; --border-color: #333333; --accent-color: #8B5CF6; --accent-color-light: rgba(29, 185, 84, 0.2); --hover-bg: #282828; --shadow-color: rgba(0, 0, 0, 0.5); --error-color: #f87171; --message-color: #4ade80; }
 [data-theme='light'] { --bg-primary: #f5f5f7; --bg-secondary: #ffffff; --bg-tertiary: #e5e5e5; --bg-modal: #ffffff; --text-primary: #1d1d1f; --text-secondary: #515154; --border-color: #d2d2d7; --accent-color: rgb(193, 139, 244); --accent-color-light: rgba(0, 122, 255, 0.1); --hover-bg: #e8e8e8; --shadow-color: rgba(0, 0, 0, 0.1); --error-color: #ef4444; --message-color: #22c55e; }
 body { margin: 0; font-family: var(--font-family); background-color: var(--bg-primary); color: var(--text-primary); transition: background-color var(--transition-speed), color var(--transition-speed); }
 
-.app-container { display: grid; grid-template-columns: 240px 1fr; grid-template-rows: 1fr auto; height: 100vh; overflow: hidden; position: relative; }
-.sidebar { grid-row: 1 / 2; background-color: var(--bg-secondary); padding: 1.5rem; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
-.main-content { grid-row: 1 / 2; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+/* --- Sidebar Styles --- */
+.app-container {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
 
+.sidebar {
+  grid-row: 1 / 2;
+  background-color: var(--bg-secondary);
+  padding: 1.5rem;
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  margin-bottom: 2rem;
+  text-align: left; /* Align to the left side */
+}
+
+.sidebar-logo {
+  width: 80px; /* Reduced size */
+  height: auto; /* Maintain aspect ratio */
+  object-fit: contain; /* Ensure the image fits without distortion */
+  transition: transform 0.2s ease; /* Keep the hover effect */
+}
+
+.sidebar-logo:hover {
+  transform: scale(1.05); /* Slight scale on hover for interactivity */
+}
+
+.sidebar-nav {
+  flex-grow: 1;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li a {
+  display: block;
+  padding: 0.75rem 0;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.sidebar-nav li a:hover {
+  color: var(--text-primary);
+}
+
+.sidebar-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 1rem;
+}
+
+.sidebar-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.sidebar-button:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.main-content {
+  grid-row: 1 / 2;
+  padding: 2rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    grid-template-columns: 200px 1fr;
+  }
+  .sidebar-logo {
+    width: 60px; /* Smaller size on mobile */
+  }
+  .sidebar {
+    padding: 1rem;
+  }
+  .main-content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    grid-template-columns: 200px 1fr;
+  }
+  .sidebar-logo {
+    width: 100px; /* Smaller size on mobile */
+  }
+  .sidebar {
+    padding: 1rem;
+  }
+  .main-content {
+    padding: 1rem;
+  }
+}
+@media (max-width: 768px) {
+  .app-container {
+    grid-template-columns: 200px 1fr;
+  }
+  .sidebar-logo {
+    width: 100px; /* Smaller size on mobile */
+  }
+  .sidebar {
+    padding: 1rem;
+  }
+  .main-content {
+    padding: 1rem;
+  }
+}
+@media (max-width: 768px) {
+  .app-container {
+    grid-template-columns: 200px 1fr;
+  }
+  .sidebar-logo {
+    font-size: 1.5rem;
+  }
+  .sidebar {
+    padding: 1rem;
+  }
+  .main-content {
+    padding: 1rem;
+  }
+}
 .sidebar-header { margin-bottom: 2rem; } .sidebar-logo { font-weight: 700; font-size: 1.25rem; } .sidebar-nav { flex-grow: 1; } .sidebar-nav ul { list-style: none; padding: 0; margin: 0; } .sidebar-nav li a { display: block; padding: 0.75rem 0; color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.2s; } .sidebar-nav li a:hover { color: var(--text-primary); } .sidebar-actions { display: flex; gap: 0.5rem; padding-top: 1rem; } .sidebar-button { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.5rem; border-radius: 50%; transition: background-color 0.2s, color 0.2s; } .sidebar-button:hover { background-color: var(--hover-bg); color: var(--text-primary); }
 .search-bar-container { position: relative; } .search-icon { position: absolute; top: 50%; left: 1rem; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; } .search-input { width: 100%; box-sizing: border-box; padding: 0.75rem 1rem 0.75rem 3rem; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem; transition: border-color 0.2s; } .search-input:focus { outline: none; border-color: var(--accent-color); } .section-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; }
 
@@ -915,6 +1169,7 @@ function App() {
   const [error, setError] = useState(null);
   const [isProfileView, setProfileView] = useState(false);
   const [isNowPlayingViewOpen, setNowPlayingViewOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('Listen Now'); // New state for active section
 
   const audioRef = useRef(null);
   const currentSong = currentSongIndex !== null ? songs[currentSongIndex] : null;
@@ -952,6 +1207,12 @@ function App() {
 
   // --- HANDLERS ---
   const handleUserIconClick = () => { if (session) { setProfileView(true); } else { setAuthModalOpen(true); } };
+  // New navigation handler
+  const handleNavClick = (section) => {
+    setProfileView(false); // Ensure profile view is closed
+    setActiveSection(section);
+    setSearchTerm(''); // Clear search when navigating
+  };
   const toggleFavorite = (songId) => {
     setFavoriteSongs(prevFavorites => {
       if (prevFavorites.includes(songId)) {
@@ -992,32 +1253,109 @@ function App() {
     if (isLoading) return <LoadingIndicator />;
     if (error) return <ErrorDisplay message={error} />;
     if (searchTerm) {
-      return searchResults.length > 0 
-        ? <MusicSection title="Search Results" songs={searchResults} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} /> 
-        : <ErrorDisplay message={`No results for "${searchTerm}"`} />
+      return searchResults.length > 0 ? (
+        <MusicSection
+          title="Search Results"
+          songs={searchResults}
+          onSongSelect={playSongById}
+          currentSong={currentSong}
+          isPlaying={isPlaying}
+        />
+      ) : (
+        <ErrorDisplay message={`No results for "${searchTerm}"`} />
+      );
     }
-    return (
-      <>
-        <MusicSection title="Top Charts" songs={topCharts} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} />
-        <VerticalSongList title="Latest Releases" songs={latestReleases} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} />
-        <MusicSection title="Recommended For You" songs={recommendations} onSongSelect={playSongById} currentSong={currentSong} isPlaying={isPlaying} />
-      </>
-    );
-  }
+    switch (activeSection) {
+      case 'Listen Now':
+        return (
+          <>
+            <MusicSection
+              title="Top Charts"
+              songs={topCharts}
+              onSongSelect={playSongById}
+              currentSong={currentSong}
+              isPlaying={isPlaying}
+            />
+            <VerticalSongList
+              title="Latest Releases"
+              songs={latestReleases}
+              onSongSelect={playSongById}
+              currentSong={currentSong}
+              isPlaying={isPlaying}
+            />
+            <MusicSection
+              title="Recommended For You"
+              songs={recommendations}
+              onSongSelect={playSongById}
+              currentSong={currentSong}
+              isPlaying={isPlaying}
+            />
+          </>
+        );
+      case 'Library':
+        return (
+          <FavoriteSongsList
+            songs={songs}
+            favoriteSongIds={favoriteSongs}
+            onSongSelect={playSongById}
+            currentSong={currentSong}
+            isPlaying={isPlaying}
+          />
+        );
+      case 'Browse':
+      case 'Radio':
+      default:
+        return <div>Select a section to explore.</div>;
+    }
+  };
 
   return (
     <>
       <GlobalStyles />
       <div className={`app-container ${isNowPlayingViewOpen ? 'now-playing-open' : ''}`} data-theme={theme}>
         <aside className="sidebar">
-            <div className="sidebar-header"><div className="sidebar-logo">Ode</div></div>
-            <nav className="sidebar-nav">
-              <ul>
-                <li><a href="#/" onClick={() => setProfileView(false)}>Listen Now</a></li>
-                <li><a href="#/" onClick={() => setProfileView(false)}>Browse</a></li>
-                <li><a href="#/" onClick={() => setProfileView(false)}>Radio</a></li>
-              </ul>
-            </nav>
+        <div className="sidebar-header">
+  <img src="odelogo.png" alt="Ode Logo" className="sidebar-logo" />
+</div>            <nav className="sidebar-nav">
+  <ul>
+    <li>
+      <a
+        href="#/"
+        onClick={() => handleNavClick('Listen Now')}
+        className={activeSection === 'Listen Now' ? 'active' : ''}
+      >
+        Listen Now
+      </a>
+    </li>
+    <li>
+      <a
+        href="#/"
+        onClick={() => handleNavClick('Browse')}
+        className={activeSection === 'Browse' ? 'active' : ''}
+      >
+        Browse
+      </a>
+    </li>
+    <li>
+      <a
+        href="#/"
+        onClick={() => handleNavClick('Library')}
+        className={activeSection === 'Library' ? 'active' : ''}
+      >
+        Library
+      </a>
+    </li>
+    <li>
+      <a
+        href="#/"
+        onClick={() => handleNavClick('Radio')}
+        className={activeSection === 'Radio' ? 'active' : ''}
+      >
+        Radio
+      </a>
+    </li>
+  </ul>
+</nav>
             <div className="sidebar-actions">
               <button className="sidebar-button" title="Settings" onClick={() => setSettingsModalOpen(true)}><SettingsIcon /></button>
               <button className="sidebar-button" title="Profile" onClick={handleUserIconClick}><UserIcon /></button>
