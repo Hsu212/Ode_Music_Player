@@ -425,7 +425,6 @@ const GlobalStyles = () => (
       /* Add or update these styles in the <style> block of the GlobalStyles component */
 
 /* Ensure the app container takes full height and prevents overflow */
-/* Ensure the app container takes full height and prevents overflow */
 .app-container {
   display: grid;
   grid-template-areas:
@@ -440,28 +439,156 @@ const GlobalStyles = () => (
 }
 
 /* Header, Sidebar, and Main Content */
-header { grid-area: header; }
-.sidebar { grid-area: sidebar; background-color: var(--bg-secondary); padding: 1.5rem; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto; }
-.main-content { grid-area: main; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+header {
+  grid-area: header;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+}
+
+.sidebar {
+  grid-area: sidebar;
+  background-color: var(--bg-secondary);
+  padding: 1.5rem;
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.main-content {
+  grid-area: main;
+  padding: 2rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+  display: none; /* Hidden on PC */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--text-primary);
+}
 
 /* Sidebar Styles */
-.sidebar-header { margin-bottom: 2rem; text-align: left; }
-.sidebar-logo { width: 80px; height: auto; object-fit: contain; transition: transform 0.2s ease; }
-.sidebar-logo:hover { transform: scale(1.05); }
-.sidebar-nav { flex-grow: 1; }
-.sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
-.sidebar-nav li a { display: block; padding: 0.75rem 0; color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.2s; }
-.sidebar-nav li a:hover { color: var(--text-primary); }
-.sidebar-nav li a.active { color: var(--accent-color); font-weight: 600; }
-.sidebar-actions { display: flex; gap: 0.5rem; padding-top: 1rem; }
-.sidebar-button { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.5rem; border-radius: 50%; transition: background-color 0.2s, color 0.2s; }
-.sidebar-button:hover { background-color: var(--hover-bg); color: var(--text-primary); }
+.sidebar-header {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.sidebar-logo {
+  width: 80px;
+  height: auto;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.sidebar-logo:hover {
+  transform: scale(1.05);
+}
+
+.sidebar-nav {
+  flex-grow: 1;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li a {
+  display: block;
+  padding: 0.75rem 0;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.sidebar-nav li a:hover {
+  color: var(--text-primary);
+}
+
+.sidebar-nav li a.active {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.sidebar-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 1rem;
+}
+
+.sidebar-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.sidebar-button:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
 
 /* Base & Theme Styles */
-:root { --font-family: 'Inter', sans-serif; --transition-speed: 0.3s; }
-[data-theme='dark'] { --bg-primary: #121212; --bg-secondary: #1e1e1e; --bg-tertiary: #2a2a2a; --bg-modal: #282828; --text-primary: #ffffff; --text-secondary: #b3b3b3; --border-color: #333333; --accent-color: #8B5CF6; --accent-color-light: rgba(29, 185, 84, 0.2); --hover-bg: #282828; --shadow-color: rgba(0, 0, 0, 0.5); --error-color: #f87171; --message-color: #4ade80; }
-[data-theme='light'] { --bg-primary: #f5f5f7; --bg-secondary: #ffffff; --bg-tertiary: #e5e5e5; --bg-modal: #ffffff; --text-primary: #1d1d1f; --text-secondary: #515154; --border-color: #d2d2d7; --accent-color: rgb(193, 139, 244); --accent-color-light: rgba(0, 122, 255, 0.1); --hover-bg: #e8e8e8; --shadow-color: rgba(0, 0, 0, 0.1); --error-color: #ef4444; --message-color: #22c55e; }
-body { margin: 0; font-family: var(--font-family); background-color: var(--bg-primary); color: var(--text-primary); transition: background-color var(--transition-speed), color var(--transition-speed); }
+:root {
+  --font-family: 'Inter', sans-serif;
+  --transition-speed: 0.3s;
+}
+
+[data-theme='dark'] {
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --bg-tertiary: #2a2a2a;
+  --bg-modal: #282828;
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --border-color: #333333;
+  --accent-color: #8B5CF6;
+  --accent-color-light: rgba(29, 185, 84, 0.2);
+  --hover-bg: #282828;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --error-color: #f87171;
+  --message-color: #4ade80;
+}
+
+[data-theme='light'] {
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e5e5e5;
+  --bg-modal: #ffffff;
+  --text-primary: #1d1d1f;
+  --text-secondary: #515154;
+  --border-color: #d2d2d7;
+  --accent-color: rgb(193, 139, 244);
+  --accent-color-light: rgba(0, 122, 255, 0.1);
+  --hover-bg: #e8e8e8;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --error-color: #ef4444;
+  --message-color: #22c55e;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+}
 
 /* Now Playing View */
 .now-playing-view {
@@ -1373,7 +1500,20 @@ input:checked + .slider:before {
     grid-template-rows: 60px 1fr;
   }
   .sidebar {
-    display: none; /* Hide sidebar on mobile */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 240px;
+    height: 100vh;
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-toggle {
+    display: block; /* Show toggle button on mobile */
   }
   .main-content {
     padding: 1rem;
@@ -1570,8 +1710,7 @@ input:checked + .slider:before {
   .form-switch {
     font-size: 0.8rem;
   }
-}
-}
+}}
     `}</style>
 );
 
@@ -1595,18 +1734,17 @@ function App() {
   const [isNowPlayingViewOpen, setNowPlayingViewOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('Listen Now'); // New state for active section
 
-  // Add this useEffect in the App component, just below the state declarations
-useEffect(() => {
-  if (isNowPlayingViewOpen) {
-    document.body.classList.add('now-playing-open');
-  } else {
-    document.body.classList.remove('now-playing-open');
-  }
-  // Cleanup on component unmount
-  return () => {
-    document.body.classList.remove('now-playing-open');
-  };
-}, [isNowPlayingViewOpen]);
+  useEffect(() => {
+    if (isNowPlayingViewOpen) {
+      document.body.classList.add('now-playing-open');
+    } else {
+      document.body.classList.remove('now-playing-open');
+    }
+    return () => {
+      document.body.classList.remove('now-playing-open');
+    };
+  }, [isNowPlayingViewOpen]);  // Cleanup on component unmount
+  
 
   const audioRef = useRef(null);
   const currentSong = currentSongIndex !== null ? songs[currentSongIndex] : null;
