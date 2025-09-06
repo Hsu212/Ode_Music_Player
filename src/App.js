@@ -21,6 +21,13 @@ const ChevronDownIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24
 const MoreIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>);
 const HeartIcon = ({ isFavorite }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>);
 const CloseIcon = ({size = 32}) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
+const MenuIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="4" y1="6" x2="20" y2="6"/>
+    <line x1="4" y1="12" x2="20" y2="12"/>
+    <line x1="4" y1="18" x2="20" y2="18"/>
+  </svg>
+);
 
 
 // --- HELPER COMPONENTS ---
@@ -1489,6 +1496,30 @@ input:checked + .slider:before {
   padding: 1rem;
   font-style: italic;
 }
+  .sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1099;
+  display: none;
+}
+.sidebar-close {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+}
+.sidebar-close:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
@@ -1515,6 +1546,19 @@ input:checked + .slider:before {
   .sidebar-toggle {
     display: block; /* Show toggle button on mobile */
   }
+    .sidebar-overlay {
+  display: block; /* Shown when sidebar is open */
+}
+.sidebar-close {
+  display: block;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+header {
+  padding: 0 1rem;
+  justify-content: flex-start; /* Align toggle to left */
+}
   .main-content {
     padding: 1rem;
   }
@@ -1733,6 +1777,7 @@ function App() {
   const [isProfileView, setProfileView] = useState(false);
   const [isNowPlayingViewOpen, setNowPlayingViewOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('Listen Now'); // New state for active section
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (isNowPlayingViewOpen) {
@@ -1888,7 +1933,15 @@ function App() {
     <>
       <GlobalStyles />
       <div className={`app-container ${isNowPlayingViewOpen ? 'now-playing-open' : ''}`} data-theme={theme}>
-        <aside className="sidebar">
+      <header>
+  <button className="sidebar-toggle" onClick={() => setIsSidebarOpen(prev => !prev)}>
+    <MenuIcon />
+  </button>
+</header>
+        <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+        <button className="sidebar-close" onClick={() => setIsSidebarOpen(false)}>
+  <CloseIcon size={24} />
+</button>
         <div className="sidebar-header">
   <img src="odelogo.png" alt="Ode Logo" className="sidebar-logo" />
 </div>            <nav className="sidebar-nav">
@@ -2003,6 +2056,9 @@ function App() {
             <div className="current-track-info">No song selected</div>
           )}
         </footer>
+        {isSidebarOpen && (
+  <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
+)}
         {currentSong && (
           <NowPlayingView
             song={currentSong}
