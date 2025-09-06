@@ -667,12 +667,13 @@ body { margin: 0; font-family: var(--font-family); background-color: var(--bg-pr
 .control-button, .play-pause-button { background: none; border: none; color: var(--text-secondary); cursor: pointer; transition: color 0.2s; } .control-button:hover, .play-pause-button:hover { color: var(--text-primary); } .play-pause-button { background-color: var(--hover-bg); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-primary); } .play-pause-button:hover { transform: scale(1.05); } .progress-container { display: flex; align-items: center; gap: 0.75rem; width: 100%; max-width: 500px; } .progress-time { font-size: 0.75rem; color: var(--text-secondary); min-width: 35px; text-align: center;} input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; } input[type="range"]:focus { outline: none; } input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--bg-tertiary); border-radius: 3px; } input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: var(--text-primary); cursor: pointer; margin-top: -5px; transition: opacity 0.2s; opacity: 0; } .progress-container:hover input[type="range"]::-webkit-slider-thumb { opacity: 1; } .footer-right-controls { display: flex; justify-content: flex-end; } .volume-container { display: flex; align-items: center; gap: 0.5rem; width: 150px; } .volume-bar { cursor: pointer; } .volume-bar::-webkit-slider-runnable-track { background: var(--bg-tertiary); } .volume-bar::-webkit-slider-thumb { height: 12px; width: 12px; margin-top: -4px; opacity: 1;}
 .spinner { width: 48px; height: 48px; border: 5px solid var(--border-color); border-bottom-color: var(--accent-color); border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; } @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } 
 /* --- Now Playing View (Full Screen Player) Styles --- */
+/* Update existing .now-playing-view styles */
 .now-playing-view {
-  position: absolute;
+  position: fixed; /* Change from absolute to fixed */
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh; /* Use viewport height */
   background: var(--bg-primary);
   z-index: 1000;
   display: flex;
@@ -680,12 +681,25 @@ body { margin: 0; font-family: var(--font-family); background-color: var(--bg-pr
   padding: 1.5rem;
   box-sizing: border-box;
   transform: translateY(100%);
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.4s;
-  visibility: hidden;
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  overflow-y: auto; /* Allow scrolling within the view if needed */
 }
+
+/* Ensure the view is visible when open */
 .app-container.now-playing-open .now-playing-view {
   transform: translateY(0);
   visibility: visible;
+}
+
+/* Prevent background scrolling when Now Playing is open */
+.app-container.now-playing-open {
+  overflow: hidden; /* Disable scrolling on the app container */
+}
+
+/* Ensure the body doesn't scroll */
+body.now-playing-open {
+  overflow: hidden;
+  height: 100vh; /* Prevent body from extending beyond viewport */
 }
 .close-now-playing {
   position: absolute;
