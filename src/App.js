@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import './App.css';
-import AuthModal from './AuthModal'; 
-import SettingsModal from './SettingsModal';
-import ProfilePage from './ProfilePage';
-import FavoriteSongsList from './FavoriteSongsList';
-import NowPlayingView from './NowPlayingView'; 
 
 // --- ICONS ---
 const PlayIcon = ({ size = 24 }) => (
