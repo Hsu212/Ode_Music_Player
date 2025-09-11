@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import './App.css';
-import AuthModal from './AuthModal'; // Assuming these are defined elsewhere
+import AuthModal from './AuthModal'; 
 import SettingsModal from './SettingsModal';
 import ProfilePage from './ProfilePage';
 import FavoriteSongsList from './FavoriteSongsList';
-import NowPlayingView from './NowPlayingView'; // Assuming this is defined elsewhere
+import NowPlayingView from './NowPlayingView'; 
 
 // --- ICONS ---
 const PlayIcon = ({ size = 24 }) => (
@@ -482,7 +482,7 @@ const App = () => {
     const fetchSongs = async () => {
       try {
         const mockSongs = [
-          // Mock song data...
+          // Mock song data
         ];
         setSongs(mockSongs);
         setTopCharts(mockSongs.slice(0, 5));
