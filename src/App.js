@@ -384,41 +384,59 @@ const SettingsModal = ({ isOpen, onClose }) => {
     return (<div className="modal-overlay" onClick={onClose}><div className="modal-content" onClick={e => e.stopPropagation()}><button className="modal-close-button" onClick={onClose}><XIcon /></button><h2 className="modal-title">Settings</h2><div className="setting-item"><label htmlFor="language">Language</label><select id="language" className="form-input"><option>English</option><option>Español</option></select></div><div className="setting-item"><label>Download Quality</label><div className="radio-group"><label><input type="radio" name="quality" value="wifi" defaultChecked /> Wi-Fi Only</label><label><input type="radio" name="quality" value="always" /> Always</label></div></div><div className="setting-item"><span>Data Saver</span><label className="toggle-switch"><input type="checkbox" /><span className="slider"></span></label></div><button className="form-button" onClick={onClose}>Save Changes</button></div></div>);
 };
 
-const NowPlayingView = ({ song, isPlaying, onPlayPause, onNext, onPrev, progress, onProgressChange, duration, formatTime, onClose, isFavorite, onToggleFavorite }) => {  
-    return (
-      <div className="now-playing-view">
-          <div className="npv-header">
-              <button className="npv-close-button" onClick={onClose}><ChevronDownIcon /></button>
-              <span className="npv-header-title">Now Playing</span>
-              <button className="npv-more-button"><MoreIcon /></button>
+const NowPlayingView = ({ song, isPlaying, onPlayPause, onNext, onPrev, progress, onProgressChange, duration, formatTime, onClose, isFavorite, onToggleFavorite, isMoreMenuOpen, setIsMoreMenuOpen }) => {  
+  return (
+    <div className="now-playing-view">
+        <div className="npv-header">
+            <button className="npv-close-button" onClick={onClose}><ChevronDownIcon /></button>
+            <span className="npv-header-title">Now Playing</span>
+            <button className="npv-more-button" onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}>
+              <MoreIcon />
+            </button>
+        </div>
+        {isMoreMenuOpen && (
+          <div className="more-menu">
+            <button className="menu-item" onClick={() => { /* Share logic: e.g., navigator.share or copy link */ alert('Share: ' + song.title); setIsMoreMenuOpen(false); }}>
+              <span>Share</span>
+            </button>
+            <button className="menu-item" onClick={() => { /* Go to artist: e.g., search or navigate */ alert('Go to artist: ' + song.artist); setIsMoreMenuOpen(false); }}>
+              <span>Go to Artist</span>
+            </button>
+            <button className="menu-item" onClick={() => { /* Lyrics: e.g., fetch from API */ alert('Lyrics for: ' + song.title); setIsMoreMenuOpen(false); }}>
+              <span>Lyrics</span>
+            </button>
+            <button className="menu-item" onClick={() => { /* Report issue */ alert('Report: ' + song.title); setIsMoreMenuOpen(false); }}>
+              <span>Report a Problem</span>
+            </button>
           </div>
-          <div className="npv-content">
-              <div className="npv-artwork-container">
-                  <img src={song.albumArt} alt={song.title} className="npv-artwork" onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/500x500/000000/FFFFFF?text=Error'; }}/>
-              </div>
-              <div className="npv-details">
-                  <div style={{ flexGrow: 1 }}>
-                    <h1 className="npv-title">{song.title}</h1>
-                    <h2 className="npv-artist">{song.artist}</h2>
-                  </div>
-                  <button className="npv-favorite-button" onClick={() => onToggleFavorite(song.id)}>
-                    <HeartIcon isFavorite={isFavorite} />
-                  </button>
-              </div>
-              <div className="npv-progress-container">
-                  <input type="range" min="0" max="100" value={progress || 0} onChange={onProgressChange} className="npv-progress-bar" />
-                  <div className="npv-time-info">
-                      <span>{formatTime(progress > 0 ? (progress / 100) * duration : 0)}</span>
-                      <span>{formatTime(duration)}</span>
-                  </div>
-              </div>
-              <div className="npv-controls">
-                  <button className="npv-control-button" onClick={onPrev}><SkipBackIcon /></button>
-                  <button className="npv-play-pause-button" onClick={onPlayPause}>{isPlaying ? <PauseIcon size={36}/> : <PlayIcon size={36}/>}</button>
-                  <button className="npv-control-button" onClick={onNext}><SkipForwardIcon /></button>
-              </div>
-          </div>
-      </div>
+        )}
+        <div className="npv-content">
+            <div className="npv-artwork-container">
+                <img src={song.albumArt} alt={song.title} className="npv-artwork" onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/500x500/000000/FFFFFF?text=Error'; }}/>
+            </div>
+            <div className="npv-details">
+                <div style={{ flexGrow: 1 }}>
+                  <h1 className="npv-title">{song.title}</h1>
+                  <h2 className="npv-artist">{song.artist}</h2>
+                </div>
+                <button className="npv-favorite-button" onClick={() => onToggleFavorite(song.id)}>
+                  <HeartIcon isFavorite={isFavorite} />
+                </button>
+            </div>
+            <div className="npv-progress-container">
+                <input type="range" min="0" max="100" value={progress || 0} onChange={onProgressChange} className="npv-progress-bar" />
+                <div className="npv-time-info">
+                    <span>{formatTime(progress > 0 ? (progress / 100) * duration : 0)}</span>
+                    <span>{formatTime(duration)}</span>
+                </div>
+            </div>
+            <div className="npv-controls">
+                <button className="npv-control-button" onClick={onPrev}><SkipBackIcon /></button>
+                <button className="npv-play-pause-button" onClick={onPlayPause}>{isPlaying ? <PauseIcon size={36}/> : <PlayIcon size={36}/>}</button>
+                <button className="npv-control-button" onClick={onNext}><SkipForwardIcon /></button>
+            </div>
+        </div>
+    </div>
   );
 };
 
@@ -761,6 +779,34 @@ body.now-playing-open {
   justify-content: center;
   color: var(--text-primary);
   cursor: pointer;
+}
+
+.more-menu {
+  position: absolute;
+  top: 60px;
+  right: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem 0;
+  box-shadow: 0 10px 30px var(--shadow-color);
+  z-index: 1001;
+  min-width: 180px;
+}
+.menu-item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.menu-item:hover {
+  background-color: var(--hover-bg);
 }
 
 /* Footer Player Controls */
@@ -1778,6 +1824,7 @@ function App() {
   const [isNowPlayingViewOpen, setNowPlayingViewOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('Listen Now'); // New state for active section
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
   useEffect(() => {
     if (isNowPlayingViewOpen) {
@@ -2060,21 +2107,23 @@ function App() {
   <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
 )}
         {currentSong && (
-          <NowPlayingView
-            song={currentSong}
-            isPlaying={isPlaying}
-            onPlayPause={togglePlayPause}
-            onNext={playNext}
-            onPrev={playPrevious}
-            progress={progress}
-            onProgressChange={handleProgressBarChange}
-            duration={duration}
-            formatTime={formatTime}
-            onClose={() => setNowPlayingViewOpen(false)}
-            isFavorite={favoriteSongs.includes(currentSong.id)}
-            onToggleFavorite={toggleFavorite}
-          />
-        )}
+  <NowPlayingView
+    song={currentSong}
+    isPlaying={isPlaying}
+    onPlayPause={togglePlayPause}
+    onNext={playNext}
+    onPrev={playPrevious}
+    progress={progress}
+    onProgressChange={handleProgressBarChange}
+    duration={duration}
+    formatTime={formatTime}
+    onClose={() => setNowPlayingViewOpen(false)}
+    isFavorite={favoriteSongs.includes(currentSong.id)}
+    onToggleFavorite={toggleFavorite}
+    isMoreMenuOpen={isMoreMenuOpen}
+    setIsMoreMenuOpen={setIsMoreMenuOpen}
+  />
+)}
         <audio
           ref={audioRef}
           onTimeUpdate={handleTimeUpdate}
